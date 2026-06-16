@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const BaseModel = require('./baseModel');
 
 const reportSchema = new mongoose.Schema({
-    // === اطلاعات اصلی ===
     title: {
         type: String,
         required: [true, 'Report title is required'],
@@ -14,8 +13,6 @@ const reportSchema = new mongoose.Schema({
         enum: ['daily', 'weekly', 'monthly', 'project', 'performance', 'financial'],
         required: true
     },
-    
-    // === تولیدکننده و گیرنده ===
     generatedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -33,8 +30,6 @@ const reportSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Team'
     },
-    
-    // === داده‌های گزارش ===
     data: {
         tasksCompleted: {
             type: Number,
@@ -62,10 +57,20 @@ const reportSchema = new mongoose.Schema({
         details: {
             type: mongoose.Schema.Types.Mixed,
             default: {}
-        }
+        },
+        tasks: [{
+            title: String,
+            status: String,
+            hours: Number,
+            completedAt: Date
+        }],
+        projects: [{
+            title: String,
+            status: String,
+            budget: Number,
+            deadline: Date
+        }]
     },
-    
-    // === دوره زمانی ===
     period: {
         start: {
             type: Date,
@@ -76,8 +81,6 @@ const reportSchema = new mongoose.Schema({
             required: true
         }
     },
-    
-    // === متادیتا ===
     status: {
         type: String,
         enum: ['draft', 'published', 'archived'],
@@ -87,23 +90,27 @@ const reportSchema = new mongoose.Schema({
         type: String,
         trim: true,
         lowercase: true
-    }]
+    }],
+    summary: {
+        type: String,
+        maxlength: [500, 'Summary cannot exceed 500 characters']
+    }
 }, {
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
 });
 
-// === اعمال مدل پایه ===
+// اعمال مدل پایه
 new BaseModel(reportSchema);
 
-// === Virtual Properties ===
+// Virtual Properties
 reportSchema.virtual('duration').get(function() {
     const diff = this.period.end - this.period.start;
-    return Math.ceil(diff / (1000 * 60 * 60 * 24)); // روزها
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
 });
 
-// === Instance Methods ===
+// Instance Methods
 reportSchema.methods.publish = function() {
     this.status = 'published';
     return this.save();
@@ -114,43 +121,7 @@ reportSchema.methods.archive = function() {
     return this.save();
 };
 
-// === Static Methods ===
-reportSchema.statics.generateMonthlyReport = async function(userId, month, year) {
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
-    
-    const Task = mongoose.model('Task');
-    const Project = mongoose.model('Project');
-    
-    const tasks = await Task.find({
-        assignedTo: userId,
-        completedDate: { $gte: startDate, $lte: endDate }
-    });
-    
-    const projects = await Project.find({
-        'team.member': userId,
-        endDate: { $gte: startDate, $lte: endDate }
-    });
-    
-    return {
-        tasksCompleted: tasks.filter(t => t.status === 'done').length,
-        hoursWorked: tasks.reduce((sum, t) => sum + (t.actualHours || 0), 0),
-        projectsDelivered: projects.filter(p => p.status === 'completed').length,
-        details: {
-            tasks: tasks.map(t => ({
-                title: t.title,
-                hours: t.actualHours,
-                status: t.status
-            })),
-            projects: projects.map(p => ({
-                title: p.title,
-                status: p.status,
-                budget: p.budget
-            }))
-        }
-    };
-};
-
+// Static Methods
 reportSchema.statics.getReportsByUser = function(userId, type = null) {
     const query = { forUser: userId };
     if (type) query.type = type;
@@ -160,19 +131,22 @@ reportSchema.statics.getReportsByUser = function(userId, type = null) {
         .sort({ createdAt: -1 });
 };
 
-reportSchema.statics.getProjectPerformance = function(projectId) {
-    return this.find({
-        forProject: projectId,
-        type: 'project'
-    }).populate('generatedBy', 'fullName');
+reportSchema.statics.getRecentReports = function(limit = 10) {
+    return this.find({ status: 'published' })
+        .populate('generatedBy', 'fullName email')
+        .populate('forUser', 'fullName email')
+        .sort({ createdAt: -1 })
+        .limit(limit);
 };
 
-// === Indexes ===
+// ✅ ایندکس‌ها
 reportSchema.index({ generatedBy: 1 });
 reportSchema.index({ forUser: 1 });
 reportSchema.index({ forProject: 1 });
+reportSchema.index({ forTeam: 1 });
 reportSchema.index({ type: 1, 'period.start': -1 });
 reportSchema.index({ status: 1 });
+reportSchema.index({ createdAt: -1 });
 
 const Report = mongoose.model('Report', reportSchema);
 module.exports = Report;

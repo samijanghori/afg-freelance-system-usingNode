@@ -1,18 +1,13 @@
 // models/baseModel.js
 const mongoose = require('mongoose');
 
-/**
- * مدل پایه برای همه مدل‌ها
- * شامل فیلدهای مشترک و قابلیت‌های عمومی
- */
 class BaseModel {
     constructor(schema, options = {}) {
-        // افزودن فیلدهای مشترک به همه مدل‌ها
         schema.add({
             isDeleted: {
                 type: Boolean,
                 default: false,
-                select: false  // در کوئری‌های عادی نمایش داده نشود
+                select: false
             },
             deletedAt: {
                 type: Date,
@@ -31,7 +26,7 @@ class BaseModel {
             }
         });
 
-        // Middleware برای حذف نرم (Soft Delete)
+        // Middleware برای حذف نرم
         schema.pre('find', function() {
             this.where({ isDeleted: false });
         });
@@ -44,17 +39,16 @@ class BaseModel {
             this.where({ isDeleted: false });
         });
 
-        // Middleware برای به‌روزرسانی خودکار
         schema.pre('save', function(next) {
             this.updatedAt = new Date();
             next();
         });
 
-        // متدهای عمومی
-        schema.methods.softDelete = async function(userId) {
+        // متدهای نمونه
+        schema.methods.softDelete = async function(userId = null) {
             this.isDeleted = true;
             this.deletedAt = new Date();
-            this.updatedBy = userId;
+            if (userId) this.updatedBy = userId;
             return this.save();
         };
 
@@ -69,11 +63,8 @@ class BaseModel {
             return this.find({ isDeleted: false });
         };
 
-        schema.statics.findByIdAndRestore = async function(id) {
-            return this.findByIdAndUpdate(id, {
-                isDeleted: false,
-                deletedAt: null
-            }, { new: true });
+        schema.statics.findWithDeleted = function() {
+            return this.find().select('+isDeleted +deletedAt');
         };
 
         return schema;

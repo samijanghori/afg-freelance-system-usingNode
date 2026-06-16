@@ -1,31 +1,39 @@
-<%- include('partials/header.ejs') %>
+<!-- views/index.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>AfgFreelance Platform</h1>
+        <p>Empowering Afghan Freelancers</p>
+    </header>
 
-<section class="hero">
-    <h1>Welcome to AFG Freelancers</h1>
-    <p>Your trusted partner for professional freelancing services in Afghanistan</p>
-</section>
-
-<div class="container">
-    <div class="members-content">
-        <h2>Our Members (<%= members.length %>)</h2>
-        <div class="member-grid">
-            
-            <% members.forEach(member => { %>
-            <div class="member-card">
-                <div class="member-card-header">
-                    <h3><%= member.name %></h3>
-                </div>
-                <div class="member-card-body">
-                    <p><strong>Profession:</strong> <%= member.profession %></p>
-                    <p><strong>Experience:</strong> <%= member.experience %> years</p>
-                    <p><strong>Location:</strong> <%= member.location %></p>
-                    <span class="badge"><%= member.status %></span>
-                </div>
+    <main>
+        <section class="members-section">
+            <h2>Our Members</h2>
+            <div class="members-grid">
+                <% members.forEach(member => { %>
+                    <div class="member-card">
+                        <h3><%= member.name %></h3>
+                        <p class="profession"><%= member.profession %></p>
+                        <p class="experience">Experience: <%= member.experience %> years</p>
+                        <p class="location">📍 <%= member.location %></p>
+                        <span class="status <%= member.status.toLowerCase() %>">
+                            <%= member.status %>
+                        </span>
+                    </div>
+                <% }) %>
             </div>
-            <% }) %>
-            
-        </div>
-    </div>
-</div>
+        </section>
+    </main>
 
-<%- include('partials/footer.ejs') %>
+    <footer>
+        <p>&copy; 2026 AfgFreelance. All rights reserved.</p>
+    </footer>
+</body>
+</html>

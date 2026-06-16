@@ -1,51 +1,102 @@
-// app.js
+// app.js (نسخه ساده شده برای تست)
+require('dotenv').config();
+
 const express = require('express');
-const app = express();
-const mongoose = require('mongoose');
+const path = require('path');
+const cors = require('cors');
+const helmet = require('helmet');
 const morgan = require('morgan');
+const mongoose = require('mongoose');
 
-// === بارگذاری متغیرهای محیطی از فایل .env (اگر وجود داشته باشد) ===
-try {
-    require('dotenv').config();
-    console.log('✅ .env file loaded successfully');
-} catch (error) {
-    console.log('ℹ️ No .env file found, using default values');
-}
+const app = express();
 
-// === اتصال به دیتابیس ===
+// اتصال به دیتابیس
 const dbURI = process.env.MONGODB_URI || 'mongodb+srv://mrsami:Admin123@cluster0.9dniolf.mongodb.net/AfgFreelance-database';
 
 mongoose.connect(dbURI)
-    .then(() => {
-        console.log('✅ Connected to MongoDB Atlas');
-        console.log(`📊 Database: ${mongoose.connection.db.databaseName}`);
-    })
-    .catch((err) => {
-        console.error('❌ MongoDB connection error:', err.message);
-    });
+    .then(() => console.log('✅ Connected to MongoDB'))
+    .catch((err) => console.error('❌ MongoDB Error:', err.message));
 
-// === تنظیمات View Engine ===
-app.set('view engine', 'ejs');
+// Middleware
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// === مسیرها ===
-app.get('/', (req, res) => {
-    const members = [
-        // ... داده‌های members
-    ];
-    res.render('index', { title: 'HomePage', members: members });
+// تنظیمات View Engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// === بارگذاری Routes با try/catch ===
+let indexRoutes, userRoutes, projectRoutes, taskRoutes, teamRoutes;
+
+try {
+    indexRoutes = require('./routes/indexRoutes');
+    console.log('✅ indexRoutes loaded');
+} catch (err) {
+    console.error('❌ Error loading indexRoutes:', err.message);
+    indexRoutes = (req, res) => res.status(500).send('indexRoutes error');
+}
+
+try {
+    userRoutes = require('./routes/userRoutes');
+    console.log('✅ userRoutes loaded');
+} catch (err) {
+    console.error('❌ Error loading userRoutes:', err.message);
+    userRoutes = (req, res) => res.status(500).send('userRoutes error');
+}
+
+try {
+    projectRoutes = require('./routes/projectRoutes');
+    console.log('✅ projectRoutes loaded');
+} catch (err) {
+    console.error('❌ Error loading projectRoutes:', err.message);
+    projectRoutes = (req, res) => res.status(500).send('projectRoutes error');
+}
+
+try {
+    taskRoutes = require('./routes/taskRoutes');
+    console.log('✅ taskRoutes loaded');
+} catch (err) {
+    console.error('❌ Error loading taskRoutes:', err.message);
+    taskRoutes = (req, res) => res.status(500).send('taskRoutes error');
+}
+
+try {
+    teamRoutes = require('./routes/teamRoutes');
+    console.log('✅ teamRoutes loaded');
+} catch (err) {
+    console.error('❌ Error loading teamRoutes:', err.message);
+    teamRoutes = (req, res) => res.status(500).send('teamRoutes error');
+}
+
+// === استفاده از Routes ===
+app.use('/', indexRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/teams', teamRoutes);
+
+// مدیریت خطاهای 404
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: 'Route not found'
+    });
 });
 
-app.get('/about', (req, res) => {
-    res.render('about', { title: 'OurTeam' });
+// مدیریت خطاهای سرور
+app.use((err, req, res, next) => {
+    console.error('❌ Server Error:', err.stack);
+    res.status(500).json({
+        success: false,
+        message: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
+    });
 });
 
-app.get('/create/member', (req, res) => {
-    res.render('create_member', { title: 'CreateMember' });
-});
-
-// === راه‌اندازی سرور ===
+// راه‌اندازی سرور
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);

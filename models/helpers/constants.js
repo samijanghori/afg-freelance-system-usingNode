@@ -3,7 +3,7 @@
 // استان‌های افغانستان
 const PROVINCES = [
     'Kabul',
-    'Herat', 
+    'Herat',
     'Mazar-e-Sharif',
     'Kandahar',
     'Balkh',
@@ -69,6 +69,19 @@ const PRIORITY = {
     URGENT: 'urgent'
 };
 
+// دسته‌بندی پروژه
+const PROJECT_CATEGORIES = {
+    WEB_DEVELOPMENT: 'web_development',
+    MOBILE_DEVELOPMENT: 'mobile_development',
+    DESIGN: 'design',
+    CONTENT_WRITING: 'content_writing',
+    DIGITAL_MARKETING: 'digital_marketing',
+    VIDEO_PRODUCTION: 'video_production',
+    TRANSLATION: 'translation',
+    SOFTWARE_DEVELOPMENT: 'software_development',
+    OTHER: 'other'
+};
+
 module.exports = {
     PROVINCES,
     USER_ROLES,
@@ -76,5 +89,6 @@ module.exports = {
     USER_STATUS,
     PROJECT_STATUS,
     TASK_STATUS,
-    PRIORITY
+    PRIORITY,
+    PROJECT_CATEGORIES
 };

@@ -1,25 +1,94 @@
-<%- include('partials/header.ejs') %>
+<!-- views/create_member.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Create New Member</h1>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/about">About</a>
+            <a href="/create/member">Create Member</a>
+        </nav>
+    </header>
 
-<div class="form-container">
-    <h2>Create New Member</h2>
-    <form action="/members" method="POST">
-        <div class="form-group">
-            <label>Full Name:</label>
-            <input type="text" name="name" required>
-        </div>
+    <main>
+        <section class="create-form">
+            <h2>Add New Freelancer</h2>
+            <form action="/api/users" method="POST" id="memberForm">
+                <div class="form-group">
+                    <label for="fullName">Full Name:</label>
+                    <input type="text" id="fullName" name="fullName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required minlength="8">
+                </div>
+                
+                <div class="form-group">
+                    <label for="phoneNumber">Phone Number:</label>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="profession">Profession:</label>
+                    <select id="profession" name="profession">
+                        <option value="Web Developer">Web Developer</option>
+                        <option value="Graphic Designer">Graphic Designer</option>
+                        <option value="Mobile Developer">Mobile Developer</option>
+                        <option value="Translator">Translator</option>
+                        <option value="UI/UX Designer">UI/UX Designer</option>
+                        <option value="Video Editor">Video Editor</option>
+                        <option value="Content Writer">Content Writer</option>
+                        <option value="Digital Marketer">Digital Marketer</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="province">Province:</label>
+                    <select id="province" name="province">
+                        <option value="Kabul">Kabul</option>
+                        <option value="Herat">Herat</option>
+                        <option value="Mazar-e-Sharif">Mazar-e-Sharif</option>
+                        <option value="Kandahar">Kandahar</option>
+                        <option value="Balkh">Balkh</option>
+                        <option value="Nangarhar">Nangarhar</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="experience">Experience (years):</label>
+                    <input type="number" id="experience" name="experience" min="0" max="50" value="0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="skills">Skills (comma separated):</label>
+                    <input type="text" id="skills" name="skills" placeholder="e.g., JavaScript, React, Node.js">
+                </div>
+                
+                <button type="submit" class="btn-submit">Create Member</button>
+            </form>
+            <div id="responseMessage"></div>
+        </section>
+    </main>
 
-        <div class="form-group">
-            <label>Email:</label>
-            <input type="email" name="email" required>
-        </div>
+    <footer>
+        <p>&copy; 2026 AfgFreelance. All rights reserved.</p>
+    </footer>
 
-        <div class="form-group">
-            <label>Profession:</label>
-            <input type="text" name="profession" required>
-        </div>
-
-        <button type="submit">Create Member</button>
-    </form>
-</div>
-
-<%- include('partials/footer.ejs') %>
+    <script src="/js/script.js"></script>
+</body>
+</html>

@@ -10,12 +10,10 @@ const {
 } = require('./helpers/constants');
 const {
     validateEmail,
-    validatePhoneNumber,
-    validatePasswordStrength
+    validatePhoneNumber
 } = require('./helpers/validators');
 
 const userSchema = new mongoose.Schema({
-    // === اطلاعات شخصی ===
     fullName: {
         type: String,
         required: [true, 'Full name is required'],
@@ -26,7 +24,7 @@ const userSchema = new mongoose.Schema({
     email: {
         type: String,
         required: [true, 'Email is required'],
-        unique: true,
+        unique: true,  // ✅ ایندکس یکبار تعریف شده
         lowercase: true,
         trim: true,
         validate: {
@@ -38,7 +36,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Password is required'],
         minlength: [8, 'Password must be at least 8 characters'],
-        select: false  // در کوئری‌های عادی نمایش داده نشود
+        select: false
     },
     phoneNumber: {
         type: String,
@@ -55,14 +53,8 @@ const userSchema = new mongoose.Schema({
     },
     profileImage: {
         type: String,
-        default: 'default-avatar.jpg',
-        validate: {
-            validator: (v) => !v || validateURL(v),
-            message: 'Invalid image URL'
-        }
+        default: 'default-avatar.jpg'
     },
-    
-    // === اطلاعات حرفه‌ای ===
     profession: {
         type: String,
         enum: [
@@ -103,24 +95,20 @@ const userSchema = new mongoose.Schema({
         link: {
             type: String,
             validate: {
-                validator: validateURL,
+                validator: function(v) {
+                    return !v || /^https?:\/\/.+/.test(v);
+                },
                 message: 'Invalid portfolio URL'
             }
         },
         image: {
-            type: String,
-            validate: {
-                validator: (v) => !v || validateURL(v),
-                message: 'Invalid image URL'
-            }
+            type: String
         },
         createdAt: {
             type: Date,
             default: Date.now
         }
     }],
-    
-    // === نقش و دسترسی ===
     role: {
         type: String,
         enum: Object.values(USER_ROLES),
@@ -130,8 +118,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: Object.values(PERMISSIONS)
     }],
-    
-    // === وضعیت ===
     status: {
         type: String,
         enum: Object.values(USER_STATUS),
@@ -156,8 +142,6 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    
-    // === اطلاعات سیستمی ===
     lastLogin: Date,
     isActive: {
         type: Boolean,
@@ -170,6 +154,16 @@ const userSchema = new mongoose.Schema({
     refreshToken: {
         type: String,
         select: false
+    },
+    bio: {
+        type: String,
+        maxlength: [500, 'Bio cannot exceed 500 characters']
+    },
+    socialLinks: {
+        linkedin: String,
+        github: String,
+        twitter: String,
+        website: String
     }
 }, {
     timestamps: true,
@@ -177,10 +171,10 @@ const userSchema = new mongoose.Schema({
     toObject: { virtuals: true }
 });
 
-// === اعمال مدل پایه ===
+// اعمال مدل پایه
 new BaseModel(userSchema);
 
-// === Virtual Properties ===
+// Virtual Properties
 userSchema.virtual('fullProfile').get(function() {
     return {
         id: this._id,
@@ -190,12 +184,12 @@ userSchema.virtual('fullProfile').get(function() {
         skills: this.skills,
         rating: this.rating,
         status: this.status,
-        isActive: this.isActive
+        isActive: this.isActive,
+        profession: this.profession
     };
 });
 
-// === Middleware ===
-// هش کردن رمز عبور قبل از ذخیره
+// Middleware
 userSchema.pre('save', async function(next) {
     if (!this.isModified('password')) return next();
     
@@ -208,7 +202,7 @@ userSchema.pre('save', async function(next) {
     }
 });
 
-// === Instance Methods ===
+// Instance Methods
 userSchema.methods.comparePassword = async function(candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
 };
@@ -225,17 +219,13 @@ userSchema.methods.getPublicProfile = function() {
         rating: this.rating,
         status: this.status,
         portfolio: this.portfolio,
-        profileImage: this.profileImage
+        profileImage: this.profileImage,
+        bio: this.bio,
+        socialLinks: this.socialLinks
     };
 };
 
-userSchema.methods.updateRating = async function() {
-    // محاسبه ریتینگ بر اساس پروژه‌های تکمیل شده
-    // اینجا می‌توانید منطق محاسبه ریتینگ را پیاده‌سازی کنید
-    return this.save();
-};
-
-// === Static Methods ===
+// Static Methods
 userSchema.statics.findByEmail = function(email) {
     return this.findOne({ email: email.toLowerCase() });
 };
@@ -245,7 +235,7 @@ userSchema.statics.findActiveFreelancers = function() {
         role: USER_ROLES.FREELANCER,
         isActive: true,
         status: USER_STATUS.AVAILABLE
-    }).select('fullName email profession skills rating');
+    }).select('fullName email profession skills rating profileImage');
 };
 
 userSchema.statics.findByRole = function(role) {
@@ -259,22 +249,29 @@ userSchema.statics.getTopRated = function(limit = 10) {
     })
     .sort({ rating: -1, completedProjects: -1 })
     .limit(limit)
-    .select('fullName profession skills rating');
+    .select('fullName profession skills rating profileImage');
 };
 
-// === Indexes ===
-userSchema.index({ email: 1 });
+userSchema.statics.getUserStats = async function() {
+    const stats = await this.aggregate([
+        { $match: { isDeleted: false, isActive: true } },
+        {
+            $group: {
+                _id: '$role',
+                count: { $sum: 1 },
+                avgRating: { $avg: '$rating' },
+                totalProjects: { $sum: '$totalProjects' }
+            }
+        }
+    ]);
+    return stats;
+};
+
+// ✅ فقط ایندکس‌های غیرتکراری
 userSchema.index({ role: 1, status: 1 });
 userSchema.index({ skills: 1 });
 userSchema.index({ rating: -1 });
+userSchema.index({ fullName: 'text' });
 
 const User = mongoose.model('User', userSchema);
-
-// === Hooks after model creation ===
-User.on('index', function(error) {
-    if (error) {
-        console.error('User model index error:', error);
-    }
-});
-
 module.exports = User;

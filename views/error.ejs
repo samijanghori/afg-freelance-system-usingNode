@@ -1,0 +1,20 @@
+<!-- views/error.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <main class="error-page">
+        <h1>⚠️ Server Error</h1>
+        <h2><%= message %></h2>
+        <% if (error && process.env.NODE_ENV === 'development') { %>
+            <pre><%= error.stack %></pre>
+        <% } %>
+        <a href="/" class="btn-home">Go Home</a>
+    </main>
+</body>
+</html>

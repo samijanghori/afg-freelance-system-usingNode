@@ -3,11 +3,10 @@ const mongoose = require('mongoose');
 const BaseModel = require('./baseModel');
 
 const teamSchema = new mongoose.Schema({
-    // === اطلاعات اصلی ===
     name: {
         type: String,
         required: [true, 'Team name is required'],
-        unique: true,
+        unique: true,  // ✅ ایندکس یکبار تعریف شده
         trim: true,
         maxlength: [50, 'Team name cannot exceed 50 characters']
     },
@@ -20,8 +19,6 @@ const teamSchema = new mongoose.Schema({
         ref: 'User',
         required: [true, 'Team leader is required']
     },
-    
-    // === اعضا ===
     members: [{
         user: {
             type: mongoose.Schema.Types.ObjectId,
@@ -38,10 +35,12 @@ const teamSchema = new mongoose.Schema({
         isActive: {
             type: Boolean,
             default: true
+        },
+        tasksCompleted: {
+            type: Number,
+            default: 0
         }
     }],
-    
-    // === پروژه‌های جاری ===
     currentProjects: [{
         project: {
             type: mongoose.Schema.Types.ObjectId,
@@ -56,8 +55,6 @@ const teamSchema = new mongoose.Schema({
             default: true
         }
     }],
-    
-    // === آمار تیم ===
     stats: {
         totalProjects: {
             type: Number,
@@ -76,25 +73,36 @@ const teamSchema = new mongoose.Schema({
         totalEarnings: {
             type: Number,
             default: 0
+        },
+        totalTasksCompleted: {
+            type: Number,
+            default: 0
         }
     },
-    
-    // === متادیتا ===
     tags: [{
         type: String,
         trim: true,
         lowercase: true
-    }]
+    }],
+    location: {
+        type: String,
+        enum: ['Kabul', 'Herat', 'Mazar-e-Sharif', 'Kandahar', 'Balkh', 'Nangarhar', 'Online'],
+        default: 'Online'
+    },
+    availableForWork: {
+        type: Boolean,
+        default: true
+    }
 }, {
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
 });
 
-// === اعمال مدل پایه ===
+// اعمال مدل پایه
 new BaseModel(teamSchema);
 
-// === Virtual Properties ===
+// Virtual Properties
 teamSchema.virtual('memberCount').get(function() {
     return this.members.filter(m => m.isActive).length;
 });
@@ -103,7 +111,7 @@ teamSchema.virtual('activeProjectCount').get(function() {
     return this.currentProjects.filter(p => p.isActive).length;
 });
 
-// === Instance Methods ===
+// Instance Methods
 teamSchema.methods.addMember = function(userId, role) {
     if (this.members.some(m => m.user.toString() === userId.toString() && m.isActive)) {
         throw new Error('User is already an active member of this team');
@@ -130,40 +138,31 @@ teamSchema.methods.addProject = function(projectId) {
     return this.save();
 };
 
-teamSchema.methods.completeProject = function(projectId) {
-    const project = this.currentProjects.find(p => p.project.toString() === projectId.toString());
-    if (!project) {
-        throw new Error('Project not found in team projects');
-    }
-    project.isActive = false;
-    this.stats.completedProjects += 1;
-    return this.save();
-};
-
-// === Static Methods ===
+// Static Methods
 teamSchema.statics.getTeamWithMembers = function(teamId) {
     return this.findById(teamId)
-        .populate('leader', 'fullName email')
-        .populate('members.user', 'fullName email profession skills');
+        .populate('leader', 'fullName email profileImage')
+        .populate('members.user', 'fullName email profession skills profileImage');
 };
 
 teamSchema.statics.getTeamsByLeader = function(leaderId) {
     return this.find({ leader: leaderId })
-        .populate('members.user', 'fullName email');
+        .populate('members.user', 'fullName email')
+        .populate('currentProjects.project', 'title');
 };
 
 teamSchema.statics.getTopTeams = function(limit = 5) {
-    return this.find({})
+    return this.find({ isDeleted: false })
         .sort({ 'stats.averageRating': -1, 'stats.completedProjects': -1 })
         .limit(limit)
         .populate('leader', 'fullName');
 };
 
-// === Indexes ===
-teamSchema.index({ name: 1 });
+// ✅ فقط ایندکس‌های غیرتکراری
 teamSchema.index({ leader: 1 });
 teamSchema.index({ 'members.user': 1 });
 teamSchema.index({ 'stats.averageRating': -1 });
+teamSchema.index({ location: 1 });
 
 const Team = mongoose.model('Team', teamSchema);
 module.exports = Team;

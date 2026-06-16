@@ -2,9 +2,9 @@
 const mongoose = require('mongoose');
 const BaseModel = require('./baseModel');
 const { TASK_STATUS, PRIORITY } = require('./helpers/constants');
+const { validateURL } = require('./helpers/validators');
 
 const taskSchema = new mongoose.Schema({
-    // === اطلاعات اصلی ===
     title: {
         type: String,
         required: [true, 'Task title is required'],
@@ -20,8 +20,6 @@ const taskSchema = new mongoose.Schema({
         ref: 'Project',
         required: [true, 'Project reference is required']
     },
-    
-    // === تخصیص ===
     assignedTo: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
@@ -31,8 +29,6 @@ const taskSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    
-    // === جزئیات وظیفه ===
     priority: {
         type: String,
         enum: Object.values(PRIORITY),
@@ -43,8 +39,6 @@ const taskSchema = new mongoose.Schema({
         enum: Object.values(TASK_STATUS),
         default: TASK_STATUS.TODO
     },
-    
-    // === زمان‌بندی ===
     dueDate: {
         type: Date,
         required: [true, 'Due date is required']
@@ -59,8 +53,6 @@ const taskSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    
-    // === زیروظایف ===
     subtasks: [{
         title: {
             type: String,
@@ -77,17 +69,23 @@ const taskSchema = new mongoose.Schema({
             ref: 'User'
         }
     }],
-    
-    // === وابستگی‌ها ===
     dependencies: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Task'
     }],
-    
-    // === پیوست‌ها و نظرات ===
     attachments: [{
-        name: String,
-        url: String,
+        name: {
+            type: String,
+            required: true
+        },
+        url: {
+            type: String,
+            required: true,
+            validate: {
+                validator: validateURL,
+                message: 'Invalid attachment URL'
+            }
+        },
         size: Number,
         type: String,
         uploadedAt: {
@@ -108,10 +106,12 @@ const taskSchema = new mongoose.Schema({
         createdAt: {
             type: Date,
             default: Date.now
+        },
+        isEdited: {
+            type: Boolean,
+            default: false
         }
     }],
-    
-    // === متادیتا ===
     tags: [{
         type: String,
         trim: true,
@@ -123,10 +123,10 @@ const taskSchema = new mongoose.Schema({
     toObject: { virtuals: true }
 });
 
-// === اعمال مدل پایه ===
+// اعمال مدل پایه
 new BaseModel(taskSchema);
 
-// === Virtual Properties ===
+// Virtual Properties
 taskSchema.virtual('isOverdue').get(function() {
     return this.status !== 'done' && 
            this.status !== 'blocked' && 
@@ -140,7 +140,7 @@ taskSchema.virtual('progress').get(function() {
     return Math.round((completed / total) * 100);
 });
 
-// === Middleware ===
+// Middleware
 taskSchema.pre('save', function(next) {
     if (this.isModified('status') && this.status === 'done') {
         this.completedDate = new Date();
@@ -148,8 +148,8 @@ taskSchema.pre('save', function(next) {
     next();
 });
 
-// === Instance Methods ===
-taskSchema.methods.toggleSubtask = async function(subtaskIndex) {
+// Instance Methods
+taskSchema.methods.toggleSubtask = async function(subtaskIndex, userId) {
     if (!this.subtasks[subtaskIndex]) {
         throw new Error('Subtask not found');
     }
@@ -157,9 +157,9 @@ taskSchema.methods.toggleSubtask = async function(subtaskIndex) {
     this.subtasks[subtaskIndex].isCompleted = !this.subtasks[subtaskIndex].isCompleted;
     if (this.subtasks[subtaskIndex].isCompleted) {
         this.subtasks[subtaskIndex].completedAt = new Date();
+        this.subtasks[subtaskIndex].completedBy = userId;
     }
     
-    // بررسی اینکه آیا همه زیروظایف کامل شده‌اند
     const allCompleted = this.subtasks.every(s => s.isCompleted);
     if (allCompleted && this.subtasks.length > 0) {
         this.status = 'done';
@@ -169,16 +169,11 @@ taskSchema.methods.toggleSubtask = async function(subtaskIndex) {
     return this.save();
 };
 
-taskSchema.methods.addComment = function(userId, text) {
-    this.comments.push({ user: userId, text });
-    return this.save();
-};
-
-// === Static Methods ===
+// Static Methods
 taskSchema.statics.getTasksByProject = function(projectId) {
     return this.find({ project: projectId })
-        .populate('assignedTo', 'fullName email')
-        .populate('assignedBy', 'fullName')
+        .populate('assignedTo', 'fullName email profileImage')
+        .populate('assignedBy', 'fullName email')
         .sort({ priority: -1, dueDate: 1 });
 };
 
@@ -196,26 +191,12 @@ taskSchema.statics.getOverdueTasks = function() {
       .populate('assignedTo', 'fullName email');
 };
 
-taskSchema.statics.getTaskStats = async function(projectId) {
-    const stats = await this.aggregate([
-        { $match: { project: mongoose.Types.ObjectId(projectId) } },
-        {
-            $group: {
-                _id: '$status',
-                count: { $sum: 1 },
-                estimatedHours: { $sum: '$estimatedHours' },
-                actualHours: { $sum: '$actualHours' }
-            }
-        }
-    ]);
-    return stats;
-};
-
-// === Indexes ===
+// ✅ ایندکس‌های غیرتکراری
 taskSchema.index({ project: 1, status: 1 });
 taskSchema.index({ assignedTo: 1 });
 taskSchema.index({ dueDate: 1 });
 taskSchema.index({ priority: -1 });
+taskSchema.index({ title: 'text', description: 'text' });
 
 const Task = mongoose.model('Task', taskSchema);
 module.exports = Task;

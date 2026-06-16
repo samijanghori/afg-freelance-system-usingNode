@@ -2,9 +2,8 @@
 const express = require('express');
 const router = express.Router();
 const { User } = require('../models');
-const { validateEmail, validatePhoneNumber } = require('../models/helpers/validators');
 
-// === GET: دریافت همه کاربران ===
+// GET: دریافت همه کاربران
 router.get('/', async (req, res) => {
     try {
         const users = await User.find()
@@ -24,7 +23,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// === GET: دریافت کاربر با ID ===
+// GET: دریافت کاربر با ID
 router.get('/:id', async (req, res) => {
     try {
         const user = await User.findById(req.params.id)
@@ -49,25 +48,9 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// === POST: ایجاد کاربر جدید ===
+// POST: ایجاد کاربر جدید
 router.post('/', async (req, res) => {
     try {
-        // اعتبارسنجی ایمیل
-        if (req.body.email && !validateEmail(req.body.email)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid email format'
-            });
-        }
-        
-        // اعتبارسنجی شماره تلفن
-        if (req.body.phoneNumber && !validatePhoneNumber(req.body.phoneNumber)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid phone number format'
-            });
-        }
-        
         const user = new User(req.body);
         await user.save();
         
@@ -76,14 +59,12 @@ router.post('/', async (req, res) => {
             data: user.getPublicProfile()
         });
     } catch (error) {
-        // خطای تکراری بودن ایمیل
         if (error.code === 11000) {
             return res.status(400).json({
                 success: false,
                 message: 'Email already exists'
             });
         }
-        
         res.status(400).json({
             success: false,
             message: error.message
@@ -91,7 +72,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// === PUT: بروزرسانی کاربر ===
+// PUT: بروزرسانی کاربر
 router.put('/:id', async (req, res) => {
     try {
         const user = await User.findByIdAndUpdate(
@@ -122,7 +103,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// === DELETE: حذف کاربر (Soft Delete) ===
+// DELETE: حذف کاربر
 router.delete('/:id', async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
@@ -134,7 +115,7 @@ router.delete('/:id', async (req, res) => {
             });
         }
         
-        await user.softDelete(req.user?._id || null);
+        await user.softDelete();
         
         res.json({
             success: true,
@@ -148,41 +129,4 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-// === GET: دریافت فریلنسرهای فعال ===
-router.get('/freelancers/active', async (req, res) => {
-    try {
-        const freelancers = await User.findActiveFreelancers();
-        
-        res.json({
-            success: true,
-            count: freelancers.length,
-            data: freelancers
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
-
-// === GET: دریافت برترین فریلنسرها ===
-router.get('/freelancers/top', async (req, res) => {
-    try {
-        const limit = parseInt(req.query.limit) || 10;
-        const topFreelancers = await User.getTopRated(limit);
-        
-        res.json({
-            success: true,
-            count: topFreelancers.length,
-            data: topFreelancers
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
-
-module.exports = router;
+module.exports = router;  // ✅ مهم: صادر کردن router

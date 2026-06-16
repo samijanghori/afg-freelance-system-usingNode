@@ -3,12 +3,12 @@ const mongoose = require('mongoose');
 const BaseModel = require('./baseModel');
 const {
     PROJECT_STATUS,
-    PRIORITY
+    PRIORITY,
+    PROJECT_CATEGORIES
 } = require('./helpers/constants');
 const { validateURL } = require('./helpers/validators');
 
 const projectSchema = new mongoose.Schema({
-    // === اطلاعات اصلی ===
     title: {
         type: String,
         required: [true, 'Project title is required'],
@@ -29,8 +29,6 @@ const projectSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    
-    // === تیم پروژه ===
     team: [{
         member: {
             type: mongoose.Schema.Types.ObjectId,
@@ -53,30 +51,17 @@ const projectSchema = new mongoose.Schema({
             default: true
         }
     }],
-    
-    // === دسته‌بندی و اولویت ===
     category: {
         type: String,
-        enum: [
-            'web_development',
-            'mobile_development',
-            'design',
-            'content_writing',
-            'digital_marketing',
-            'video_production',
-            'translation',
-            'software_development',
-            'other'
-        ],
-        required: true
+        enum: Object.values(PROJECT_CATEGORIES),
+        required: true,
+        default: PROJECT_CATEGORIES.OTHER
     },
     priority: {
         type: String,
         enum: Object.values(PRIORITY),
         default: PRIORITY.MEDIUM
     },
-    
-    // === بودجه و زمان ===
     budget: {
         amount: {
             type: Number,
@@ -106,8 +91,6 @@ const projectSchema = new mongoose.Schema({
         default: Date.now
     },
     endDate: Date,
-    
-    // === وضعیت و پیشرفت ===
     status: {
         type: String,
         enum: Object.values(PROJECT_STATUS),
@@ -119,8 +102,6 @@ const projectSchema = new mongoose.Schema({
         max: 100,
         default: 0
     },
-    
-    // === مستندات و ارتباطات ===
     attachments: [{
         name: {
             type: String,
@@ -164,8 +145,6 @@ const projectSchema = new mongoose.Schema({
             default: false
         }
     }],
-    
-    // === متادیتا ===
     tags: [{
         type: String,
         trim: true,
@@ -177,12 +156,12 @@ const projectSchema = new mongoose.Schema({
     toObject: { virtuals: true }
 });
 
-// === اعمال مدل پایه ===
+// اعمال مدل پایه
 new BaseModel(projectSchema);
 
-// === Virtual Properties ===
+// Virtual Properties
 projectSchema.virtual('totalTeamMembers').get(function() {
-    return this.team.length;
+    return this.team.filter(m => m.isActive).length;
 });
 
 projectSchema.virtual('isOverdue').get(function() {
@@ -191,7 +170,7 @@ projectSchema.virtual('isOverdue').get(function() {
            this.deadline < new Date();
 });
 
-// === Instance Methods ===
+// Instance Methods
 projectSchema.methods.updateProgress = async function() {
     const Task = mongoose.model('Task');
     const tasks = await Task.find({ project: this._id });
@@ -210,44 +189,34 @@ projectSchema.methods.updateProgress = async function() {
 };
 
 projectSchema.methods.addTeamMember = function(userId, role) {
-    if (this.team.some(m => m.member.toString() === userId.toString())) {
-        throw new Error('User is already a team member');
+    if (this.team.some(m => m.member.toString() === userId.toString() && m.isActive)) {
+        throw new Error('User is already an active team member');
     }
     this.team.push({ member: userId, role });
     return this.save();
 };
 
-projectSchema.methods.removeTeamMember = function(userId) {
-    this.team = this.team.filter(m => m.member.toString() !== userId.toString());
-    return this.save();
-};
-
-// === Static Methods ===
+// Static Methods
 projectSchema.statics.getActiveProjects = function() {
     return this.find({
         status: { $in: ['pending', 'in_progress', 'review'] }
     }).populate('client', 'fullName email');
 };
 
-projectSchema.statics.getProjectsByManager = function(managerId) {
-    return this.find({ projectManager: managerId })
-        .populate('client', 'fullName email')
-        .populate('team.member', 'fullName');
-};
-
 projectSchema.statics.getOverdueProjects = function() {
     return this.find({
-        status: { $ne: 'completed' },
+        status: { $nin: ['completed', 'cancelled'] },
         deadline: { $lt: new Date() }
     });
 };
 
-// === Indexes ===
+// ✅ ایندکس‌های غیرتکراری
 projectSchema.index({ client: 1 });
 projectSchema.index({ projectManager: 1 });
 projectSchema.index({ status: 1, priority: 1 });
 projectSchema.index({ deadline: 1 });
 projectSchema.index({ 'team.member': 1 });
+projectSchema.index({ title: 'text', description: 'text' });
 
 const Project = mongoose.model('Project', projectSchema);
 module.exports = Project;
