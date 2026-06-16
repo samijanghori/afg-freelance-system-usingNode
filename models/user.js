@@ -1,42 +1,41 @@
 const mongoose = require('mongoose');
-const { Profiler } = require('react');
+const Schema = mongoose.Schema;  
 
-const schema = mongoose.schema;
-
-const userSchema = new schema({
-    fullname:{
+const userSchema = new Schema({
+    fullname: {
         type: String,
-        required : [true,'the full name is required']
+        required: [true, 'Full name is required']
     },
-    email : {
-        type: String ,
-        required:[true,'email is required'], 
-        unique : true,
-        lowercase:true
-    },
-    password : {
+    email: {
         type: String,
-        required : [true, ' password is required']
+        required: [true, 'Email is required'],
+        unique: true,
+        lowercase: true,
+        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
     },
-    phoneNumber : {
-        type : String,
-        required : true
+    password: {
+        type: String,
+        required: [true, 'Password is required']
     },
-    province : {
-        type : String,
-        enum : ['kabul' , 'herat', ' mazarei-sharif','balkh','ghor','nangarhar','sarpol','jawzjan','other'],
-        default : 'other'
+    phoneNumber: {
+        type: String,
+        required: true
     },
-    ProfileImage : {
-        type : String,
-        default : 'default.jpg'
+    province: {
+        type: String,
+        enum: ['kabul', 'herat', 'mazar-e-sharif', 'balkh', 'ghor', 'nangarhar', 'sarpol', 'jawzjan', 'other'],
+        default: 'other'
     },
-    profession :{
-        type : String,
-        enum : ['Web Developer','Graphic Designer','mobile developer','translator','UI / UX', 'Video Editor', ' other'],
-        default:'other'
+    profileImage: {  
+        type: String,
+        default: 'default.jpg'
     },
-      skills: [{
+    profession: {
+        type: String,
+        enum: ['Web Developer', 'Graphic Designer', 'Mobile Developer', 'Translator', 'UI/UX', 'Video Editor', 'Other'],
+        default: 'Other'
+    },
+    skills: [{
         type: String
     }],
     experience: {
@@ -50,8 +49,6 @@ const userSchema = new schema({
         link: String,
         image: String
     }],
-    
-    // نقش و دسترسی
     role: {
         type: String,
         enum: ['admin', 'project_manager', 'team_leader', 'freelancer', 'client'],
@@ -61,8 +58,6 @@ const userSchema = new schema({
         type: String,
         enum: ['manage_users', 'manage_projects', 'manage_tasks', 'view_reports', 'manage_team']
     }],
-    
-    // وضعیت
     status: {
         type: String,
         enum: ['available', 'busy', 'offline', 'on_leave'],
@@ -82,18 +77,14 @@ const userSchema = new schema({
         type: Number,
         default: 0
     },
-    
-    // اطلاعات سیستمی
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
     lastLogin: Date,
     isActive: {
         type: Boolean,
         default: true
     }
+}, {
+    timestamps: true  // 
+});
 
-},{ 
-    timestamps : true
- });
+const User = mongoose.model('User', userSchema);
+module.exports = User;
