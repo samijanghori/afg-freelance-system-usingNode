@@ -159,7 +159,7 @@ exports.deleteNotification = async (req, res) => {
 };
 
 // ============================
-= ایجاد نوتیفیکیشن (برای استفاده در سایر بخش‌ها)
+// = ایجاد نوتیفیکیشن (برای استفاده در سایر بخش‌ها)
 // ============================
 exports.createNotification = async (userId, type, title, message, link = null, metadata = {}) => {
     try {
