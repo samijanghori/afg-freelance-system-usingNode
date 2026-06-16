@@ -1,0 +1,31 @@
+<%- include('partials/header.ejs') %>
+
+<section class="hero">
+    <h1>Welcome to AFG Freelancers</h1>
+    <p>Your trusted partner for professional freelancing services in Afghanistan</p>
+</section>
+
+<div class="container">
+    <div class="members-content">
+        <h2>Our Members (<%= members.length %>)</h2>
+        <div class="member-grid">
+            
+            <% members.forEach(member => { %>
+            <div class="member-card">
+                <div class="member-card-header">
+                    <h3><%= member.name %></h3>
+                </div>
+                <div class="member-card-body">
+                    <p><strong>Profession:</strong> <%= member.profession %></p>
+                    <p><strong>Experience:</strong> <%= member.experience %> years</p>
+                    <p><strong>Location:</strong> <%= member.location %></p>
+                    <span class="badge"><%= member.status %></span>
+                </div>
+            </div>
+            <% }) %>
+            
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer.ejs') %>

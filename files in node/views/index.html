@@ -1,0 +1,384 @@
+در اینجا یک صفحه HTML کامل با طراحی مدرن و ریسپانسیو برای معرفی **Node.js** آماده شده است. این صفحه شامل توضیحات کلی، ویژگی‌ها، کاربردها و یک جدول مقایسه می‌باشد.
+
+```html
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Node.js | بستر اجرای جاوااسکریپت در سمت سرور</title>
+    <!-- فونت وزیرمتن (وزیر) برای ظاهری زیبا و خوانا -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(145deg, #f0f4f8 0%, #e2e8f0 100%);
+            color: #1e293b;
+            line-height: 1.6;
+            padding: 2rem 1.5rem;
+        }
+
+        /* کانتینر اصلی */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(0px);
+            border-radius: 2rem;
+            box-shadow: 0 25px 45px -12px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        /* هدر با رنگ سبز node.js */
+        .hero {
+            background: linear-gradient(135deg, #1a3c2c, #2c5e3f);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            color: white;
+            border-bottom: 5px solid #6fcf97;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .hero h1 span {
+            background: #3e7b5b;
+            padding: 0.1rem 0.8rem;
+            border-radius: 60px;
+            font-size: 1.8rem;
+            font-weight: 600;
+            box-shadow: inset 0 -1px 0 #5e9f7a, 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            max-width: 700px;
+            margin: 0.8rem auto 0;
+            opacity: 0.9;
+        }
+
+        .badge-area {
+            margin-top: 1.2rem;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(4px);
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        /* محتوای اصلی */
+        .content {
+            padding: 2rem 2rem 2.5rem;
+        }
+
+        /* بخش‌های کارت مانند */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.8rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03), 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #e9edf2;
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px -12px rgba(0,0,0,0.12);
+            border-color: #cbd5e1;
+        }
+
+        .card-icon {
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-card h3 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: #1e3a2f;
+            border-right: 4px solid #2c5e3f;
+            padding-right: 12px;
+        }
+
+        .info-card p, .info-card ul {
+            color: #2d3e50;
+            font-size: 0.95rem;
+        }
+
+        .info-card ul {
+            padding-right: 1.2rem;
+            margin-top: 0.5rem;
+        }
+
+        .info-card li {
+            margin: 0.5rem 0;
+        }
+
+        /* بخش جدول مقایسه */
+        .comparison-section {
+            background: #f8fafc;
+            border-radius: 1.5rem;
+            padding: 1.8rem;
+            margin: 1.5rem 0 2rem;
+            border: 1px solid #dce3ec;
+        }
+
+        .comparison-section h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #0f2b1f;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            padding: 1rem 1rem;
+            text-align: right;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #eef2f6;
+            font-weight: 700;
+            color: #1e3a2f;
+            font-size: 1rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .code-block {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            font-family: 'Courier New', 'Fira Code', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0 0.5rem;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .highlight {
+            background: #eef2ff;
+            border-right: 4px solid #3b8b5e;
+            padding: 0.8rem 1rem;
+            border-radius: 1rem;
+            margin: 1.2rem 0;
+        }
+
+        footer {
+            background: #f1f5f9;
+            text-align: center;
+            padding: 1.2rem;
+            font-size: 0.85rem;
+            border-top: 1px solid #dce3ec;
+            color: #475569;
+        }
+
+        @media (max-width: 680px) {
+            body {
+                padding: 1rem;
+            }
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            .content {
+                padding: 1.5rem;
+            }
+            th, td {
+                padding: 0.7rem;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="hero">
+        <h1>
+            🟢 Node.js
+            <span>JavaScript everywhere</span>
+        </h1>
+        <p>اجرای جاوااسکریپت در سمت سرور · مقیاس‌پذیر · رویدادمحور · غیر همزمان</p>
+        <div class="badge-area">
+            <div class="badge">⚡ مبتنی بر موتور V8</div>
+            <div class="badge">📦 NPM بزرگترین اکوسیستم</div>
+            <div class="badge">🔄 حلقه رویداد (Event Loop)</div>
+            <div class="badge">🌐 بدون مسدودیت (Non-blocking)</div>
+        </div>
+    </div>
+
+    <div class="content">
+        <!-- بخش اطلاعات اصلی با کارت‌ها -->
+        <div class="card-grid">
+            <div class="info-card">
+                <div class="card-icon">🚀</div>
+                <h3>Node.js چیست؟</h3>
+                <p>Node.js یک محیط اجرای <strong>جاوااسکریپت در سمت سرور</strong> است که بر پایه موتور V8 گوگل کروم ساخته شده. این فناوری به توسعه‌دهندگان اجازه می‌دهد تا با استفاده از جاوااسکریپت، برنامه‌های back-end، API‌ها، ابزارهای خط فرمان و حتی دسکتاپ بسازند.</p>
+                <div class="highlight" style="margin-top: 12px; background:#e9f3ef;">
+                    📌 مبتنی بر مدل رویداد محور و ورودی/خروجی غیرهمزمان → ایده‌آل برای برنامه‌های بلادرنگ و پرترافیک.
+                </div>
+            </div>
+            <div class="info-card">
+                <div class="card-icon">⚙️</div>
+                <h3>ویژگی‌های کلیدی</h3>
+                <ul>
+                    <li>✅ <strong>غیرهمزمان (Asynchronous)</strong> و Non-blocking I/O</li>
+                    <li>✅ <strong>مدیریت بسته NPM</strong> با بیش از ۲ میلیون کتابخانه</li>
+                    <li>✅ <strong>سرعت بالا</strong> به لطف موتور V8 (کامپایل لحظه‌ای)</li>
+                    <li>✅ <strong>مقیاس‌پذیری</strong> با استفاده از معماری رویدادمحور و خوشه‌بندی</li>
+                    <li>✅ <strong>Single-threaded اما کارآمد</strong> با Event Loop</li>
+                    <li>✅ پشتیبانی از WebSocket، REST، GraphQL و میکروسرویس‌ها</li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <div class="card-icon">🏗️</div>
+                <h3>کاربردهای محبوب</h3>
+                <ul>
+                    <li>🔹 توسعه APIهای سریع RESTful و Backend</li>
+                    <li>🔹 برنامه‌های بلادرنگ (چت، نوتیفیکیشن، گیم)</li>
+                    <li>🔹 ابزارهای خط فرمان (CLI)</li>
+                    <li>🔹 میکروسرویس‌ها و معماری سرورلس (Serverless)</li>
+                    <li>🔹 استریمینگ داده و برنامه‌های پخش ویدئو</li>
+                    <li>🔹 فریمورک‌های معروف: Express، Nest.js، Fastify، Koa</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- مقایسه با سایر فناوری‌های بک‌اند -->
+        <div class="comparison-section">
+            <h2>📊 مقایسه Node.js با برخی فناوری‌های دیگر</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>ویژگی</th>
+                    <th>Node.js</th>
+                    <th>Python (Django/Flask)</th>
+                    <th>PHP (Laravel)</th>
+                    <th>Java (Spring)</th>
+                </tr>
+                </thead>
+                <tbody>
+                    <tr><td>مدل اجرا</td><td>رویدادمحور، Non-blocking</td><td>Multithread یا Async (محدود)</td><td>مدل درخواست-پاسخ (مسدود کننده)</td><td>Multithread (Java Virtual Machine)</td></tr>
+                    <tr><td>کارایی برای I/O بالا</td><td>⭐⭐⭐⭐⭐ عالی</td><td>⭐⭐⭐ متوسط</td><td>⭐⭐⭐ متوسط (با افزایش منابع)</td><td>⭐⭐⭐⭐ خوب (با تنظیمات)</td></tr>
+                    <tr><td>زبان در سمت کلاینت و سرور</td><td>✓ جاوااسکریپت یکسان</td><td>❌ (پایتون متفاوت)</td><td>❌ (PHP متفاوت)</td><td>❌ (جاوا متفاوت)</td></tr>
+                    <tr><td>اکوسیستم بسته‌ها</td><td>بسیار بزرگ (NPM)</td><td>بزرگ (PyPI)</td><td>بزرگ (Composer)</td><td>بسیار بزرگ (Maven/Gradle)</td></tr>
+                    <tr><td>مناسب برای ریل‌تایم</td><td>✅ عالی با WebSocket</td><td>⚠️ با کتابخانه‌های خاص</td><td>⚠️ نیاز به تنظیمات اضافه</td><td>✅ ممکن اما وزن بیشتر</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- نمونه کد ساده سرور Node.js -->
+        <div style="margin: 1.2rem 0 1rem;">
+            <h2 style="font-size: 1.6rem; font-weight: 700; margin-bottom: 0.5rem;">💻 یک سرور ساده با Node.js (بدون فریمورک)</h2>
+            <p style="margin-bottom: 10px;">فقط با چند خط کد، یک وب‌سرور HTTP ایجاد کنید:</p>
+            <div class="code-block">
+                const http = require('http');<br>
+                <br>
+                const server = http.createServer((req, res) => {<br>
+                &nbsp;&nbsp;res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});<br>
+                &nbsp;&nbsp;res.end('&lt;h1&gt;سلام از دنیای Node.js! 🚀&lt;/h1&gt;&lt;p&gt;اجای جاوااسکریپت در سمت سرور&lt;/p&gt;');<br>
+                });<br>
+                <br>
+                server.listen(3000, () => {<br>
+                &nbsp;&nbsp;console.log('سرور روی پورت 3000 در حال اجراست');<br>
+                });
+            </div>
+            <p style="font-size: 0.85rem; margin-top: 5px;">✏️ کد بالا را ذخیره کنید (مثلا server.js) و با دستور <code>node server.js</code> اجرا کنید. سپس مرورگر: <code>http://localhost:3000</code></p>
+        </div>
+
+        <!-- مزایا و نکات مهم -->
+        <div class="card-grid" style="margin-top: 1rem;">
+            <div class="info-card">
+                <div class="card-icon">📈</div>
+                <h3>مزیت رقابتی Node.js</h3>
+                <p>Node.js با اشتراک‌گذاری زبان جاوااسکریپت بین فرانت‌اند و بک‌اند، تیم‌های توسعه را چابک‌تر می‌سازد. حلقه رویداد (event loop) به آن اجازه می‌دهد هزاران درخواست همزمان را با مصرف حافظه نسبتاً کم مدیریت کند. همچنین <strong>NPM</strong> بزرگترین مخزن متن‌باز جهان است.</p>
+            </div>
+            <div class="info-card">
+                <div class="card-icon">⚠️</div>
+                <h3>نکات مهم / محدودیت‌ها</h3>
+                <ul>
+                    <li>🔸 به دلیل ماهیت single-thread، تسک‌های سنگین CPU (تصویربرداری، رمزنگاری سنگین) می‌توانند حلقه رویداد را مسدود کنند.</li>
+                    <li>🔸 کالبک‌های تو در تو (callback hell) – اما با استفاده از async/await و promiseها این مشکل حل شده.</li>
+                    <li>🔸 برای برنامه‌های با محاسبات سنگین، بهتر است از Worker Threads یا معماری مبتنی بر میکروسرویس استفاده کنید.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- آمار و تاریخچه مختصر -->
+        <div style="background: linear-gradient(120deg, #d9e6db, #edf4ea); border-radius: 1.5rem; padding: 1.5rem; margin-top: 1.5rem;">
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="font-size: 1.4rem; font-weight: 800;">📅 تاریخچه Node.js</h3>
+                    <p style="margin-top: 6px;">نخستین بار در سال ۲۰۰۹ توسط <strong>رایان دال (Ryan Dahl)</strong> معرفی شد. ایده اصلی: ارائه یک سرور غیرهمزمان برای وب با استفاده از جاوااسکریپت. امروزه توسط بنیاد Node.js و جامعه عظیم توسعه داده می‌شود. نسخه LTS (پشتیبانی بلندمدت) پایدار برای پروژه‌های تجاری توصیه می‌شود.</p>
+                </div>
+                <div style="background:#1f3b2c; padding: 0.5rem 1.2rem; border-radius: 60px; color: white; font-weight: bold;">
+                    ⚡ نود جی‌اس · بالای ۹۸٪ شرکت‌های Fortune 500
+                </div>
+            </div>
+        </div>
+
+        <!-- لینک و منبع مفید -->
+        <div style="margin: 2rem 0 0.5rem; text-align: center;">
+            <p style="font-size: 0.9rem;">برای مطالعه بیشتر به سایت رسمی مراجعه کنید:
+                <a href="https://nodejs.org" target="_blank" style="color: #2c5e3f; font-weight: 600; text-decoration: none;">nodejs.org</a>
+                &nbsp;|&nbsp;
+                <a href="https://npmjs.com" target="_blank" style="color: #2c5e3f; font-weight: 600; text-decoration: none;">npmjs.com</a>
+            </p>
+        </div>
+    </div>
+
+    <footer>
+        © ۱۴۰۴ - طراحی شده با 💚 برای معرفی Node.js | تمامی اطلاعات جهت آشنایی با تکنولوژی نود جی اس
+    </footer>
+</div>
+</body>
+</html>
+```
