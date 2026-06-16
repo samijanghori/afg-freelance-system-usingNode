@@ -43,7 +43,7 @@ exports.getNotifications = async (req, res) => {
 };
 
 // ============================
-= دریافت تعداد نوتیفیکیشن‌های خوانده نشده
+// = دریافت تعداد نوتیفیکیشن‌های خوانده نشده
 // ============================
 exports.getUnreadCount = async (req, res) => {
     try {
@@ -65,7 +65,7 @@ exports.getUnreadCount = async (req, res) => {
 };
 
 // ============================
-= خواندن یک نوتیفیکیشن
+// = خواندن یک نوتیفیکیشن
 // ============================
 exports.readNotification = async (req, res) => {
     try {
@@ -102,7 +102,7 @@ exports.readNotification = async (req, res) => {
 };
 
 // ============================
-= خواندن همه نوتیفیکیشن‌ها
+// = خواندن همه نوتیفیکیشن‌ها
 // ============================
 exports.readAllNotifications = async (req, res) => {
     try {
@@ -124,7 +124,7 @@ exports.readAllNotifications = async (req, res) => {
 };
 
 // ============================
-= حذف نوتیفیکیشن
+// = حذف نوتیفیکیشن
 // ============================
 exports.deleteNotification = async (req, res) => {
     try {
